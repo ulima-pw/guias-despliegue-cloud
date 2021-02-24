@@ -84,11 +84,12 @@ Ejemplo del package.json
     "express": "^4.17.1",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
-    "sequelize": "^6.5.0"
+    "sequelize": "^6.5.0",
+    "sequelize-cli": "^6.2.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.7",
-    "sequelize-cli": "^6.2.0"
+    
   }
 }
 
@@ -156,8 +157,56 @@ $ heroku pg:psql <nombre_bd_postgresql> --app <nombre_app>
 
 ### Configuración para ORM Sequelize
 
-Los datos de conexión a la base de datos se encuentran en el archivo server/dao/config/config.json. Los datos obtenidos de la variable de entorno DATABASE_URL configurarlo en el campo production (o test, dependiendo del uso del ambiente). Posterior a eso, deberá crear una nueva variable de entorno NODE_ENV donde indicará el tipo de configuración que se usará (test o production).
+Los datos de conexión a la base de datos se encuentran en el archivo server/dao/config/config.json. Los datos obtenidos de la variable de entorno DATABASE_URL configurarlo en el campo production (o test, dependiendo del uso del ambiente).Tener en cuenta que la variable de entorno NODE_ENV ya se encuentra seteada por defecto a production.
 
+Para el caso de la base de datos postgresql que ofrece Heroku debe de configurar una nueva opción llamada dialectOptions, esto en el archjivo server/dao/config/config.json.
+
+```
+{
+  "development": {
+    "username": "catalogo",
+    "password": "catalogo",
+    "database": "catalogodb",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "root",
+    "password": null,
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "**************",
+    "password": ""**************",",
+    "database": ""**************",",
+    "host": "ec2-18-204-74-74.compute-1.amazonaws.com",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": { "rejectUnauthorized": false }
+    }
+  }
+}
+```
+
+### Ejecución de migrations y seeders
+
+Para ejecutar las migraciones necesarias para crear la estructura de la base de datos, desde el shell local utilizaremos el comando heroku run.
+
+```
+$ heroku run "npx sequelize db:migrate --config ./server/dao/config/config.json --migrations-path ./server/dao/migrations"
+```
+
+Como se ve, en el parámetro --config indicamos la dirección del archivo config.json dentro de nuestro proyecto, y con la opción --migrations-path indicamos la ruta del directorio donde se encuentran nuestras migraciones.
+
+Para ejecutar los seeders se procede una forma similar.
+
+```
+$ heroku run "npx sequelize db:seed:all --config ./server/dao/config/config.json --seeders-path ./server/dao/seeders
+```
+
+Donde nuevamente se especifica el archivo de configuración por el --config y el directorio donde se encuentran los seeders en el --seeders-path.
 
 
 
